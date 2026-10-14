@@ -32,7 +32,7 @@ jobs:
           VITE_BASE: /${{ github.event.repository.name }}/
           VITE_RPC_URL: ${{ vars.VITE_RPC_URL }}
           VITE_RELAYER_URL: ${{ vars.VITE_RELAYER_URL }}
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: frontend/dist
 
