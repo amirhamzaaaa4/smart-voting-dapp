@@ -1,0 +1,12 @@
+node_modules
+artifacts
+cache
+coverage
+coverage.json
+contracts/legacy
+frontend/dist
+frontend/node_modules
+frontend/src/contracts
+frontend/public/allowlists
+allowlists
+package-lock.json
