@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { isAddress, getAddress } from "ethers";
 import { ROLES, ZERO_ROOT, describeError, getManager } from "../lib/contract";
-import { buildAllowlist, downloadJson } from "../lib/ballot";
+import { buildAllowlist, downloadJson, registerAllowlist } from "../lib/ballot";
 import { fromLocalInput, toLocalInput } from "../lib/format";
 import type { Roles } from "../lib/hooks";
 import { useWallet } from "../lib/wallet";
@@ -97,6 +97,7 @@ function CreateElection({ now, refresh }: { now: number; refresh: () => Promise<
         const list = buildAllowlist([...new Set(voterList.map((v) => getAddress(v)))]);
         voterRoot = list.root;
         // Proofs must be published for voters; see README "Voter allowlists".
+        registerAllowlist(list);
         downloadJson(`${list.root}.json`, list);
       }
       const tx = await getManager(signer!).createElection({

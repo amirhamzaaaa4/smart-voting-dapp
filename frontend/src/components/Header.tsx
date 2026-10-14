@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DEPLOYMENT, IS_LOCAL, describeError } from "../lib/contract";
+import { DEPLOYMENT, IS_DEMO, IS_LOCAL, describeError } from "../lib/contract";
 import { shortAddress } from "../lib/format";
 import type { Roles } from "../lib/hooks";
 import { useWallet } from "../lib/wallet";
@@ -11,10 +11,38 @@ const NETWORK_NAMES: Record<number, string> = {
   31337: "Local Hardhat",
 };
 
-export function Header({ route, roles, paused }: { route: string; roles: Roles; paused: boolean }) {
+const DEMO_ACCOUNTS = IS_DEMO ? [6, 7, 8, 9, 0, 1, 10, 11] : [0, 1, 2, 3, 4, 5, 6, 10];
+
+function accountHint(i: number) {
+  if (i === 0) return "Admin (all roles)";
+  if (IS_DEMO && i >= 6 && i <= 9) return "Fresh voter · on the allowlist";
+  return i < 10 ? "On the allowlist" : "Not on the allowlist";
+}
+
+interface HeaderProps {
+  route: string;
+  roles: Roles;
+  paused: boolean;
+  refresh: () => Promise<void>;
+}
+
+export function Header({ route, roles, paused, refresh }: HeaderProps) {
   const { account, mode, wrongNetwork, hasInjected, connectInjected, connectDev, disconnect } = useWallet();
   const toast = useToast();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [skipping, setSkipping] = useState(false);
+
+  const skipDay = async () => {
+    setSkipping(true);
+    try {
+      const { getDemo } = await import("../demo/bootstrap");
+      await (await getDemo()).skipTime(24 * 3600);
+      await refresh();
+      toast("info", "Skipped ahead 1 day", "Deadlines and reveal windows move forward on the demo chain.");
+    } finally {
+      setSkipping(false);
+    }
+  };
 
   const run = async (fn: () => Promise<void>) => {
     setMenuOpen(false);
@@ -56,51 +84,74 @@ export function Header({ route, roles, paused }: { route: string; roles: Roles; 
 
           <div className="header-actions">
             <span className="chip chip-network" title={DEPLOYMENT.address}>
-              <span className="dot" /> {NETWORK_NAMES[DEPLOYMENT.chainId] ?? `Chain ${DEPLOYMENT.chainId}`}
+              <span className="dot" />{" "}
+              {IS_DEMO ? "In-browser chain" : (NETWORK_NAMES[DEPLOYMENT.chainId] ?? `Chain ${DEPLOYMENT.chainId}`)}
             </span>
 
-            {account ? (
-              <div className="account">
-                <span className="chip chip-account" title={account}>
-                  {mode === "dev" ? "Demo · " : ""}
-                  {shortAddress(account)}
-                </span>
-                <button className="btn btn-ghost btn-sm" onClick={disconnect}>
-                  Disconnect
-                </button>
-              </div>
-            ) : (
-              <div className="connect">
+            <div className="connect">
+              {account ? (
+                <div className="account">
+                  <span className="chip chip-account" title={account}>
+                    {mode === "dev" ? "Demo · " : ""}
+                    {shortAddress(account)}
+                  </span>
+                  {IS_DEMO ? (
+                    <button className="btn btn-ghost btn-sm" onClick={() => setMenuOpen((o) => !o)}>
+                      Switch account
+                    </button>
+                  ) : (
+                    <button className="btn btn-ghost btn-sm" onClick={disconnect}>
+                      Disconnect
+                    </button>
+                  )}
+                </div>
+              ) : (
                 <button className="btn btn-primary btn-sm" onClick={() => setMenuOpen((o) => !o)}>
                   Connect
                 </button>
-                {menuOpen && (
-                  <div className="menu" role="menu">
+              )}
+              {menuOpen && (
+                <div className="menu" role="menu">
+                  {!IS_DEMO && (
                     <button role="menuitem" disabled={!hasInjected} onClick={() => run(connectInjected)}>
                       Browser wallet
                       <small>{hasInjected ? "MetaMask, Rabby, Coinbase…" : "No wallet extension detected"}</small>
                     </button>
-                    {IS_LOCAL && (
-                      <>
-                        <div className="menu-label">Local demo accounts</div>
-                        {[0, 1, 2, 3, 4, 5, 6, 10].map((i) => (
-                          <button key={i} role="menuitem" onClick={() => run(() => connectDev(i))}>
-                            Account #{i}
-                            <small>
-                              {i === 0 ? "Admin (all roles)" : i < 10 ? "On the allowlist" : "Not on the allowlist"}
-                            </small>
-                          </button>
-                        ))}
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+                  )}
+                  {IS_LOCAL && (
+                    <>
+                      <div className="menu-label">{IS_DEMO ? "Demo accounts" : "Local demo accounts"}</div>
+                      {DEMO_ACCOUNTS.map((i) => (
+                        <button key={i} role="menuitem" onClick={() => run(() => connectDev(i))}>
+                          Account #{i}
+                          <small>{accountHint(i)}</small>
+                        </button>
+                      ))}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
+      {IS_DEMO && (
+        <div className="banner banner-demo">
+          <span>
+            <strong>Live demo</strong>: the real smart contract runs on an Ethereum VM inside your browser. No wallet or
+            crypto needed. You start as a fresh voter; use <em>Switch account</em> to try others (#0 is the admin).
+          </span>
+          <span className="banner-actions">
+            <button className="btn btn-secondary btn-sm" disabled={skipping} onClick={skipDay}>
+              ⏩ Skip 1 day
+            </button>
+            <button className="btn btn-ghost btn-sm" onClick={() => window.location.reload()}>
+              ↺ Reset demo
+            </button>
+          </span>
+        </div>
+      )}
       {paused && (
         <div className="banner banner-warn">
           Voting is paused by an administrator. Deadlines continue to run; actions resume when the system is unpaused.

@@ -2,7 +2,25 @@ import { Contract, Interface, ZeroHash, id, type ContractRunner } from "ethers";
 import deployment from "../contracts/deployment.json";
 import abi from "../contracts/ElectionManager.abi.json";
 
-export const DEPLOYMENT = deployment as {
+/**
+ * Live-demo build (`vite --mode demo`): the app runs its own Ethereum VM in the
+ * browser (see src/demo) instead of connecting to a node, so anyone can try it.
+ */
+export const IS_DEMO = import.meta.env.VITE_DEMO === "true";
+
+export const LOCAL_CHAIN_ID = 31337;
+
+export const DEPLOYMENT = (
+  IS_DEMO
+    ? {
+        chainId: LOCAL_CHAIN_ID,
+        network: "demo",
+        // First contract deployed by Hardhat account #0 (deterministic CREATE address).
+        address: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+        deployBlock: 0,
+      }
+    : deployment
+) as {
   chainId: number;
   network: string;
   address: string;
@@ -12,13 +30,14 @@ export const DEPLOYMENT = deployment as {
 export const ELECTION_ABI = abi;
 export const electionInterface = new Interface(abi);
 
-export const LOCAL_CHAIN_ID = 31337;
 export const IS_LOCAL = DEPLOYMENT.chainId === LOCAL_CHAIN_ID;
 
-export const RPC_URL: string | undefined =
-  import.meta.env.VITE_RPC_URL || (IS_LOCAL ? "http://127.0.0.1:8545" : undefined);
-export const RELAYER_URL: string | undefined =
-  import.meta.env.VITE_RELAYER_URL || (IS_LOCAL ? "http://127.0.0.1:8787" : undefined);
+export const RPC_URL: string | undefined = IS_DEMO
+  ? undefined
+  : import.meta.env.VITE_RPC_URL || (IS_LOCAL ? "http://127.0.0.1:8545" : undefined);
+export const RELAYER_URL: string | undefined = IS_DEMO
+  ? undefined
+  : import.meta.env.VITE_RELAYER_URL || (IS_LOCAL ? "http://127.0.0.1:8787" : undefined);
 
 export const ROLES = {
   DEFAULT_ADMIN: ZeroHash,

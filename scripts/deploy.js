@@ -27,7 +27,7 @@ async function main() {
   console.log(`ElectionManager deployed at ${address} (block ${receipt.blockNumber})`);
 
   const { chainId } = await ethers.provider.getNetwork();
-  const { abi } = await artifacts.readArtifact("ElectionManager");
+  const { abi, bytecode } = await artifacts.readArtifact("ElectionManager");
   writeJson(path.join(FRONTEND_CONTRACTS, "deployment.json"), {
     chainId: Number(chainId),
     network: network.name,
@@ -35,6 +35,8 @@ async function main() {
     deployBlock: receipt.blockNumber,
   });
   writeJson(path.join(FRONTEND_CONTRACTS, "ElectionManager.abi.json"), abi);
+  // Bytecode lets the in-browser live demo deploy the real contract (frontend/src/demo).
+  writeJson(path.join(FRONTEND_CONTRACTS, "ElectionManager.bytecode.json"), { bytecode });
   console.log("Exported address and ABI to frontend/src/contracts/");
 
   if (LOCAL) await seed(manager);

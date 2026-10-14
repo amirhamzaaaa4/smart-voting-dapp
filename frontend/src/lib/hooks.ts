@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getManager, toElection, ROLES, type Election } from "./contract";
+import { IS_DEMO, getManager, toElection, ROLES, type Election } from "./contract";
 import { useWallet } from "./wallet";
 
 const POLL_MS = 4000;
@@ -34,7 +34,7 @@ export interface PlatformState {
 }
 
 export function usePlatform(): PlatformState {
-  const { readProvider } = useWallet();
+  const { readProvider, demoError } = useWallet();
   const [state, setState] = useState<Omit<PlatformState, "refresh">>({
     elections: [],
     paused: false,
@@ -45,7 +45,9 @@ export function usePlatform(): PlatformState {
 
   const refresh = useCallback(async () => {
     if (!readProvider) {
-      setState((s) => ({ ...s, loading: false, error: "No RPC endpoint or wallet available." }));
+      // The live demo's in-browser chain is still starting: stay in the loading state.
+      if (IS_DEMO && !demoError) return;
+      setState((s) => ({ ...s, loading: false, error: demoError ?? "No RPC endpoint or wallet available." }));
       return;
     }
     try {
@@ -71,7 +73,7 @@ export function usePlatform(): PlatformState {
         error: "Could not reach the blockchain. Is the node running and the contract deployed?",
       }));
     }
-  }, [readProvider]);
+  }, [readProvider, demoError]);
 
   useEffect(() => {
     refresh();

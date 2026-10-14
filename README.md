@@ -4,6 +4,12 @@
 
 **Secure, verifiable elections on Ethereum: secret ballots, gasless voting and voter allowlists, with a production-style dApp.**
 
+### [▶ Try the live demo](https://amirhamzaaaa4.github.io/smart-voting-dapp/)
+
+No wallet, no crypto, no sign-up: the real smart contract runs on an Ethereum VM inside your browser.
+
+[![Live demo](https://img.shields.io/badge/%E2%96%B6%20Live%20demo-open%20in%20browser-4f46e5?style=for-the-badge)](https://amirhamzaaaa4.github.io/smart-voting-dapp/)
+
 [![CI](https://github.com/amirhamzaaaa4/smart-voting-dapp/actions/workflows/ci.yml/badge.svg)](https://github.com/amirhamzaaaa4/smart-voting-dapp/actions/workflows/ci.yml)
 ![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
 ![Tests](https://img.shields.io/badge/tests-97%20passing-brightgreen)
@@ -12,7 +18,7 @@
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
-[Features](#-features) · [Quick start](#-quick-start) · [Architecture](#-architecture) · [Security](#-security-design) · [Testing](#-testing) · [Deploying](#-deploying-to-a-testnet)
+[Live demo](https://amirhamzaaaa4.github.io/smart-voting-dapp/) · [Features](#-features) · [Quick start](#-quick-start) · [Architecture](#-architecture) · [Security](#-security-design) · [Testing](#-testing) · [Deploying](#-deploying-to-a-testnet)
 
 </div>
 
@@ -76,6 +82,12 @@ More pictures, and a step-by-step record of how the project was built, are in [d
 - Friendly decoding of custom errors, light/dark themes, mobile layout
 - One-click **demo accounts** on a local chain, so no wallet extension is needed to try it
 
+**Zero-setup live demo ([`frontend/src/demo`](frontend/src/demo))**
+
+- A small EIP-1193 provider backed by [`@ethereumjs/vm`](https://github.com/ethereumjs/ethereumjs-monorepo) runs a real Ethereum VM in the browser: blocks, receipts, logs, EIP-712 signing and time travel.
+- The page deploys the actual compiled `ElectionManager` bytecode and seeds elections in every state, so anyone can vote, seal and reveal secret ballots, and use the admin console, with no wallet or test ETH.
+- It loads lazily, as a separate ~180 kB (gzipped) chunk that the normal build never ships. It's published to GitHub Pages on every push.
+
 **Infrastructure**
 
 - Gasless-vote **relayer service** with input validation, rate limiting, pre-flight simulation and nonce-safe queuing ([`relayer/server.js`](relayer/server.js))
@@ -84,6 +96,10 @@ More pictures, and a step-by-step record of how the project was built, are in [d
 - Dependabot, deploy and verify scripts for Sepolia, and an allowlist CLI
 
 ## 🚀 Quick start
+
+**Just want to try it?** Open the [live demo](https://amirhamzaaaa4.github.io/smart-voting-dapp/). You start as a fresh voter, use **Switch account** to try others (account #0 is the admin), and **⏩ Skip 1 day** moves time forward to see secret ballots reveal and elections close.
+
+**Run it yourself:**
 
 **Prerequisites:** Node.js 20+ and Git.
 
@@ -117,6 +133,8 @@ npm run deploy:local    # terminal 2: deploy, seed, export ABI to the dApp
 npm run relayer         # terminal 3: gasless-vote relayer on :8787
 npm run frontend:dev    # terminal 4: dApp on :5173
 ```
+
+Or run only the in-browser live demo, with no chain or relayer: `npm run demo`.
 
 </details>
 

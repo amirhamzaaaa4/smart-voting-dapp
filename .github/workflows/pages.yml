@@ -1,21 +1,22 @@
-name: Deploy dApp
+name: Live demo
 
-# Publishes frontend/ to GitHub Pages. Run it after deploying the contract to a
-# public testnet and committing frontend/src/contracts/*.json.
+# Publishes the in-browser live demo (frontend built with `--mode demo`) to
+# GitHub Pages on every push to main. The demo runs the real contract on an EVM
+# inside the visitor's browser, so it needs no RPC endpoint, wallet or server.
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,22 +27,12 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
         working-directory: frontend
-      - run: npm run build
+      - run: npm run build:demo
         working-directory: frontend
-        env:
-          VITE_BASE: /${{ github.event.repository.name }}/
-          VITE_RPC_URL: ${{ vars.VITE_RPC_URL }}
-          VITE_RELAYER_URL: ${{ vars.VITE_RELAYER_URL }}
-      - uses: actions/upload-pages-artifact@v3
+      - name: Publish to the gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: frontend/dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: frontend/dist
+          force_orphan: true
+          commit_message: "deploy: live demo"

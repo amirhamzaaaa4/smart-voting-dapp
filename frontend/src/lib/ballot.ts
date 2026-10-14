@@ -1,6 +1,6 @@
 import { hexlify, randomBytes, type Signer } from "ethers";
 import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
-import { DEPLOYMENT, RELAYER_URL, ZERO_ROOT, getManager } from "./contract";
+import { DEPLOYMENT, IS_DEMO, RELAYER_URL, ZERO_ROOT, getManager } from "./contract";
 
 // ---------------------------------------------------------------------------
 // Allowlists
@@ -27,6 +27,11 @@ export function loadAllowlist(root: string): Promise<Allowlist | null> {
   return allowlistCache.get(root)!;
 }
 
+/** Makes an allowlist available without fetching it (demo seed data, or one just built in the admin console). */
+export function registerAllowlist(list: Allowlist) {
+  allowlistCache.set(list.root, Promise.resolve(list));
+}
+
 export function proofFor(list: Allowlist | null, account: string): string[] | null {
   if (!list) return null;
   const key = Object.keys(list.voters).find((a) => a.toLowerCase() === account.toLowerCase());
@@ -45,6 +50,8 @@ export function buildAllowlist(addresses: string[]): Allowlist {
 }
 
 export function downloadJson(filename: string, data: unknown) {
+  // The live demo resets on reload, so saving files there would only clutter downloads.
+  if (IS_DEMO) return;
   const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
   const a = Object.assign(document.createElement("a"), { href: url, download: filename });
   a.click();
@@ -102,17 +109,19 @@ const VOTE_TYPES = {
   ],
 };
 
-export const relayerAvailable = () => !!RELAYER_URL;
+export const relayerAvailable = () => IS_DEMO || !!RELAYER_URL;
 
 export async function voteGasless(signer: Signer, electionId: number, proposalIndex: number, proof: string[]) {
-  if (!RELAYER_URL) throw new Error("No relayer configured.");
+  if (!IS_DEMO && !RELAYER_URL) throw new Error("No relayer configured.");
   const manager = getManager(signer);
   const voter = await signer.getAddress();
 
   // ERC-5267: read the exact EIP-712 domain from the contract instead of hard-coding it.
   const [, name, version, chainId, verifyingContract] = await manager.eip712Domain();
   const nonce = await manager.nonces(voter);
-  const deadline = Math.floor(Date.now() / 1000) + 15 * 60;
+  // Use chain time, not the device clock (they differ on test chains that time-travel).
+  const latest = await signer.provider!.getBlock("latest");
+  const deadline = (latest?.timestamp ?? Math.floor(Date.now() / 1000)) + 15 * 60;
 
   const signature = await signer.signTypedData({ name, version, chainId, verifyingContract }, VOTE_TYPES, {
     electionId,
@@ -121,6 +130,14 @@ export async function voteGasless(signer: Signer, electionId: number, proposalIn
     nonce,
     deadline,
   });
+
+  if (IS_DEMO) {
+    // In the live demo, an in-browser account plays the relayer and pays the gas.
+    const { getDemo, DEMO_RELAYER_ACCOUNT } = await import("../demo/bootstrap");
+    const relayer = await (await getDemo()).provider.getSigner(DEMO_RELAYER_ACCOUNT);
+    const tx = await getManager(relayer).voteBySig(electionId, proposalIndex, voter, deadline, proof, signature);
+    return tx.hash as string;
+  }
 
   const res = await fetch(`${RELAYER_URL}/relay`, {
     method: "POST",

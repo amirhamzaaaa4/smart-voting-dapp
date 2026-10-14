@@ -7,6 +7,8 @@ export default defineConfig({
   base: process.env.VITE_BASE ?? "./",
   server: { port: 5173 },
   build: {
+    // The live demo lazily loads a full EVM (~180 kB gzipped); it never ships in the normal app bundle.
+    chunkSizeWarningLimit: 700,
     rollupOptions: {
       output: {
         // Long-lived vendor chunks cache well across app releases.

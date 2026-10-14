@@ -44,7 +44,7 @@ export default function App() {
 
   return (
     <>
-      <Header route={route} roles={roles} paused={platform.paused} />
+      <Header route={route} roles={roles} paused={platform.paused} refresh={platform.refresh} />
       <main>{page}</main>
       <footer className="footer">
         <span>SmartVoting · open-source on-chain elections</span>

@@ -120,8 +120,10 @@ A plain-language explanation of the guarantees for non-technical users.
 
 Every push runs formatting checks, Solhint, the tests (with 40 fuzz runs), coverage, the gas report, Slither static analysis and the dApp build. The same sequence was run on a clean install before publishing, and everything passed.
 
-## What's next (steps 21–22)
+## Step 21: Public live demo
 
-1. Add Sepolia credentials to `.env` and run `npm run deploy:sepolia`.
-2. Commit `frontend/src/contracts/*.json`, enable GitHub Pages, and run the **Deploy dApp** workflow.
-3. Put the live link at the top of the README.
+**[▶ Try it](https://amirhamzaaaa4.github.io/smart-voting-dapp/).** A blockchain demo usually needs every visitor to install a wallet and get test ETH. Instead, the demo build bundles a small EIP-1193 provider backed by `@ethereumjs/vm`. It deploys the real contract bytecode inside the visitor's browser, seeds demo elections, and signs the visitor in as a fresh voter. A **⏩ Skip 1 day** button moves chain time forward so visitors can see secret ballots reveal and elections close. It's published to GitHub Pages automatically on every push.
+
+## Optional (step 22)
+
+Deploy to the Sepolia testnet: add credentials to `.env`, then run `npm run deploy:sepolia`.

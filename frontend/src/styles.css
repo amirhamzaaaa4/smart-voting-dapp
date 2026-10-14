@@ -1019,3 +1019,25 @@ textarea.input {
     transition: none !important;
   }
 }
+
+/* ---------- live demo banner ---------- */
+
+.banner-demo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+  background: var(--primary-soft);
+  color: var(--text);
+  font-weight: 400;
+  text-align: left;
+}
+.banner-demo strong {
+  color: var(--primary);
+}
+.banner-actions {
+  display: inline-flex;
+  gap: 8px;
+  flex: none;
+}
