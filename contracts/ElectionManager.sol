@@ -412,7 +412,7 @@ contract ElectionManager is AccessControl, Pausable, EIP712, Nonces {
         if (e.totalVotes == 0) return (Outcome.NoVotes, 0, 0);
 
         // Single pass: track the leader and whether the lead is shared.
-        bool tied;
+        bool tied = false;
         uint256 count = e.voteCounts.length;
         for (uint256 i = 0; i < count; ++i) {
             uint256 votes = e.voteCounts[i];

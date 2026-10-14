@@ -77,7 +77,7 @@ jobs:
           fail-on: medium
           slither-args: --filter-paths "node_modules|contracts/mocks|contracts/legacy"
           sarif: results.sarif
-      - uses: github/codeql-action/upload-sarif@v3
+      - uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
-          sarif: ${{ steps.slither.outputs.sarif }}
+          sarif_file: ${{ steps.slither.outputs.sarif }}
