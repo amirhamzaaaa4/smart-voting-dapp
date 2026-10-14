@@ -1,0 +1,50 @@
+{
+  "name": "smart-voting-dapp",
+  "version": "2.0.0",
+  "description": "Time-boxed, one-address-one-vote ballot on Ethereum: Solidity contract, Hardhat test suite and a lightweight web dApp.",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "test:gas": "cross-env REPORT_GAS=true hardhat test",
+    "coverage": "hardhat coverage",
+    "lint": "solhint --max-warnings 0 \"contracts/**/*.sol\"",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "node": "hardhat node",
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost",
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
+    "allowlist": "node scripts/build-allowlist.js",
+    "relayer": "node relayer/server.js",
+    "frontend:install": "npm --prefix frontend install",
+    "frontend:dev": "npm --prefix frontend run dev",
+    "frontend:build": "npm --prefix frontend run build",
+    "dev:all": "node scripts/dev.js"
+  },
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "hardhat",
+    "voting",
+    "dapp",
+    "smart-contracts"
+  ],
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/merkle-tree": "^1.0.8",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.29.1",
+    "prettier": "^3.9.10",
+    "prettier-plugin-solidity": "^2.4.1",
+    "solhint": "^6.2.5"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.6.1",
+    "ethers": "^6.17.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
